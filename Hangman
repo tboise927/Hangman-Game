@@ -1,0 +1,127 @@
+# Hangman-Game
+#The code to play the classic game hangman in Python.
+
+import string, random
+
+def load_words():
+    infile = open("words.txt")
+    line = infile.readline()
+    wordlist = line.split()
+    return wordlist
+    
+def choose_word(wordlist):
+    return random.choice(wordlist)    
+
+wordlist = load_words()
+
+def is_word_guessed(secret_word, letters_guessed):
+    for char in secret_word:  
+        if (char in letters_guessed) == False:
+            guessed = False
+            break
+        else:
+            guessed = True
+    return guessed
+
+def get_guessed_word(secret_word, letters_guessed):
+    correct_letters = []
+    guessed_string = " "
+    for item in letters_guessed:
+        if item in secret_word:
+            correct_letters.append(item)
+    for char in secret_word:
+        if char in correct_letters:
+            guessed_string += char
+        else:
+            guessed_string += " _"
+    return guessed_string
+
+def get_avail_letters(letters_guessed):
+    letters = string.ascii_lowercase
+    not_guessed = ""
+    for char in letters:
+        if char not in letters_guessed:
+            not_guessed += char
+    return not_guessed
+
+def num_warnings(warnings, user_guess, duplicate_guesses, display):
+    warnings -= 1
+    if not user_guess.isalpha():
+        print("Sorry, that is not a valid letter. You have " + str(warnings) + " warnings remaining: " + "\n" + display)
+    elif user_guess in duplicate_guesses:
+        print("You have already guessed that letter. You have " + str(warnings) + " warnings remaining: " + "\n" + display)
+    print("---------")
+    return warnings 
+            
+def num_guesses(guesses, user_guess, duplicate_guesses, display):
+    guesses -= 1
+    if not user_guess.isalpha():
+        print("Sorry, that is not a letter. You have no more warnings, so you lose one guess. " + "\n" + display)
+    elif user_guess in duplicate_guesses:
+        print("Sorry, you already guess that letter. You have no more warnings, so you lose one guess. " + "\n" +display)
+    else:
+        print("Sorry, that letter is not in my word. You lose a guess. " + "\n" + display)
+    print("---------")
+    return guesses
+        
+def hangman(secret_word):
+    letters_guessed = []
+    duplicate_guesses = []
+    guesses = 6
+    warnings = 3
+    display = ' _' * len(secret_word)
+    
+    print("Welcome to Hangman!")
+    print("I am thinking of a word that is " + str(len(secret_word)) + " letters long")
+    print("You have " + str(warnings) + " warnings remaining")
+    print("--------")
+    
+    while True:
+        letters_left = get_avail_letters(letters_guessed)
+        print("You have " + str(guesses) + " guesses remaining")
+        print("Available letters: " + letters_left)
+    
+        user_guess = input("Please enter a letter: ")
+
+        if not user_guess.isalpha():
+            if warnings > 0:
+                warnings = num_warnings(warnings, user_guess, duplicate_guesses, display)
+            elif guesses > 1:
+                guesses = num_guesses(guesses, user_guess, duplicate_guesses, display)
+            else:
+                print("Sorry, you are out of guesses. The word was " + secret_word)
+                break
+        else: 
+            if user_guess not in letters_guessed:
+                letters_guessed.append(user_guess) 
+            game_over=is_word_guessed(secret_word, letters_guessed)
+    
+            if game_over:
+                display = get_guessed_word(secret_word, letters_guessed)
+                print("Good guess " + "\n" + display)
+                print("Congratulations, you won!")
+                break
+            elif user_guess in duplicate_guesses:
+                if warnings > 0:
+                    warnings = num_warnings(warnings, user_guess, duplicate_guesses, display)
+                elif guesses>1:
+                    guesses = num_guesses(guesses, user_guess, duplicate_guesses, display)
+                else:
+
+                    print("Sorry, you have run out of guesses. The word was: " + secret_word)
+                    break
+            elif (not user_guess in duplicate_guesses) and user_guess in secret_word:
+                display = get_guessed_word(secret_word, letters_guessed)
+                print("Good guess " + "\n" + display)
+            elif user_guess not in secret_word:
+                if guesses > 1:
+                    guesses = guesses - 1
+                    num_guesses(guesses, user_guess, duplicate_guesses, display)
+                else:
+                    print("Sorry, that letter is not in my word: " + "\n" + display)
+                    print("Sorry, you have run out of guesses. The word was: " + secret_word)
+                    break
+        duplicate_guesses.append(user_guess)
+
+secret_word = choose_word(wordlist) 
+hangman(secret_word)
